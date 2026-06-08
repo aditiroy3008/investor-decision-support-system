@@ -7,7 +7,7 @@ def get_stock_data(ticker):
     stock = yf.Ticker(ticker)
 
     return {
-        "info": stock.info,
+        "info": stock.fast_info,
         "history": stock.history(
             period="1y",
             auto_adjust=True
@@ -133,6 +133,8 @@ if analyze:
         hist = data1["history"]
         hist1 = data1["history"]
         hist2 = data2["history"]
+        st.write("Loading data...")
+        st.write(info1)
         tab1, tab2, tab3, tab4 = st.tabs([
     "📊 Overview",
     "📈 Technical Analysis",
