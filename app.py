@@ -202,27 +202,31 @@ if analyze:
 
         
         with tab1:
+                
                 fifty_two_high = info.get("fiftyTwoWeekHigh", 0)
                 fifty_two_low = info.get("fiftyTwoWeekLow", 0)
 
-                price_position = (
-                    (current_price - fifty_two_low)
-                    /
-                    (fifty_two_high - fifty_two_low)
-                ) * 100
-                st.markdown(f"""
-                <h1 style='color:#0B2E75; margin-bottom:0px;'>
-                {company_name}
-                st.progress(price_position / 100)
+                if (
+                    fifty_two_high
+                    and fifty_two_low
+                    and fifty_two_high != fifty_two_low
+                ):
+                    price_position = (
+                        (current_price - fifty_two_low)
+                        /
+                        (fifty_two_high - fifty_two_low)
+                    ) * 100
 
-                st.write(
-                    f"Current price is {price_position:.1f}% of the 52-week range"
-                )
-                </h1>
-                <p style='color:gray; font-size:18px;'>
-                📊 Live Market Analysis Dashboard
-                </p>
-                """, unsafe_allow_html=True)
+                    st.progress(price_position / 100)
+
+                    st.write(
+                        f"Current price is {price_position:.1f}% of the 52-week range"
+                    )
+                    st.progress(price_position / 100)
+
+                    st.write(
+                          f"Current price is {price_position:.1f}% of the 52-week range"
+                                )
                
 
                 summary = info.get(
@@ -763,11 +767,8 @@ if analyze:
                                         st.info("Both companies appear equally strong.")
 
 
-    except Exception:
-     st.warning(
-        "⚠️ Market data is temporarily unavailable. "
-        "Please try again in a few minutes."
-    )
+    except Exception as e:
+     st.error(f"Error: {e}")
 st.markdown("---")
 
 st.caption(
