@@ -1,9 +1,18 @@
-from click import style
 import streamlit as st
 import yfinance as yf
 import pandas as pd
 import plotly.graph_objects as go
+@st.cache_data(ttl=300)
+def get_stock_data(ticker):
+    stock = yf.Ticker(ticker)
 
+    return {
+        "info": stock.info,
+        "history": stock.history(
+            period="1y",
+            auto_adjust=True
+        )
+    }
 # -----------------------------------
 # PAGE CONFIG
 # -----------------------------------
@@ -84,6 +93,11 @@ company2 = st.sidebar.selectbox(
     list(companies.keys()),
     index=1
 )
+if company1 == company2:
+        st.warning(
+            "Please select two different companies."
+        )
+        st.stop()
 
 
 
@@ -108,14 +122,17 @@ Real-Time Market Data
 
 if analyze:
     try:
-        stock = yf.Ticker(ticker1)
-        info = stock.info
-       
-        stock1 = yf.Ticker(ticker1)
-        stock2 = yf.Ticker(ticker2)
+        data1 = get_stock_data(ticker1)
+        data2 = get_stock_data(ticker2)
 
-        info1 = stock1.info
-        info2 = stock2.info
+        info = data1["info"]
+
+        info1 = data1["info"]
+        info2 = data2["info"]
+
+        hist = data1["history"]
+        hist1 = data1["history"]
+        hist2 = data2["history"]
         tab1, tab2, tab3, tab4 = st.tabs([
     "📊 Overview",
     "📈 Technical Analysis",
@@ -183,9 +200,22 @@ if analyze:
 
         
         with tab1:
+                fifty_two_high = info.get("fiftyTwoWeekHigh", 0)
+                fifty_two_low = info.get("fiftyTwoWeekLow", 0)
+
+                price_position = (
+                    (current_price - fifty_two_low)
+                    /
+                    (fifty_two_high - fifty_two_low)
+                ) * 100
                 st.markdown(f"""
                 <h1 style='color:#0B2E75; margin-bottom:0px;'>
                 {company_name}
+                st.progress(price_position / 100)
+
+                st.write(
+                    f"Current price is {price_position:.1f}% of the 52-week range"
+                )
                 </h1>
                 <p style='color:gray; font-size:18px;'>
                 📊 Live Market Analysis Dashboard
@@ -205,8 +235,7 @@ if analyze:
                         # -----------------------------------
                 # STOCK DATA
                 # -----------------------------------
-
-                hist = stock.history(
+                hist = data1["history"](
                 period="1y",
                 auto_adjust=True
                                   )
@@ -328,99 +357,101 @@ if analyze:
             else:
                 score += 10
             # 1 year return 
-            hist = stock.history(period="1y", auto_adjust=True)
+            hist = data1["history"]
 
-            hist1 = stock1.history(period="1y")
-            hist2 = stock2.history(period="1y")
+            hist1 = data1["history"]
+            hist2 = data2["history"]
+
+
 
             return1 = round(
-                ((hist1["Close"].iloc[-1] / hist1["Close"].iloc[0]) - 1) * 100,
-                2
-            )
+                    ((hist1["Close"].iloc[-1] / hist1["Close"].iloc[0]) - 1) * 100,
+                    2
+                )
 
             return2 = round(
-                ((hist2["Close"].iloc[-1] / hist2["Close"].iloc[0]) - 1) * 100,
-                2
-            )
+                    ((hist2["Close"].iloc[-1] / hist2["Close"].iloc[0]) - 1) * 100,
+                    2
+                )
             if return1 > 20:
-                    score += 20
+                        score += 20
             elif return1 > 0:
-                    score += 10
+                        score += 10
             else:
-                    score += 0
+                        score += 0
 
             score = min(score, 100)
 
-            # Grade
+                # Grade
             if score >= 85:
-                grade = "A"
+                    grade = "A"
             elif score >= 70:
-                grade = "B"
+                    grade = "B"
             elif score >= 55:
-                grade = "C"
+                    grade = "C"
             else:
-                grade = "D"
+                    grade = "D"
 
-            # Risk
+                # Risk
             beta = info.get("beta", 1)
 
             if beta < 0.8:
-                risk = "Low Risk"
+                    risk = "Low Risk"
             elif beta < 1.2:
-                risk = "Moderate Risk"
+                    risk = "Moderate Risk"
             else:
-                risk = "High Risk"
+                    risk = "High Risk"
 
-            # Layout
+                # Layout
             col1, col2 = st.columns([2, 3])
 
             with col1:
-                st.metric("Financial Health Score", f"{score}/100")
-                st.metric("Investment Grade", grade)
-                st.metric("Risk Level", risk)
+                    st.metric("Financial Health Score", f"{score}/100")
+                    st.metric("Investment Grade", grade)
+                    st.metric("Risk Level", risk)
 
             with col2:
-                    fig_gauge = go.Figure(
-                        go.Indicator(
-                            mode="gauge+number",
-                            value=score,
-                            title={"text": "Health Score"},
-                            gauge={
-                                "axis": {"range": [0, 100]},
-                                "bar": {"color": "#0B2E75"},
-                                "steps": [
-                                    {"range": [0, 55], "color": "#FF4C4C"},
-                                    {"range": [55, 70], "color": "#FFB84C"},
-                                    {"range": [70, 85], "color": "#FFFF4C"},
-                                    {"range": [85, 100], "color": "#4CAF50"}
-                                ]
-                            }
+                        fig_gauge = go.Figure(
+                            go.Indicator(
+                                mode="gauge+number",
+                                value=score,
+                                title={"text": "Health Score"},
+                                gauge={
+                                    "axis": {"range": [0, 100]},
+                                    "bar": {"color": "#0B2E75"},
+                                    "steps": [
+                                        {"range": [0, 55], "color": "#FF4C4C"},
+                                        {"range": [55, 70], "color": "#FFB84C"},
+                                        {"range": [70, 85], "color": "#FFFF4C"},
+                                        {"range": [85, 100], "color": "#4CAF50"}
+                                    ]
+                                }
+                            )
                         )
+
+                        fig_gauge.update_layout(
+                            template="plotly_white",
+                            height=300,
+                            width=500
+                        )
+                        st.plotly_chart(
+                        fig_gauge,
+                        use_container_width=False
                     )
 
-                    fig_gauge.update_layout(
-                        template="plotly_white",
-                        height=300,
-                        width=500
-                    )
-                    st.plotly_chart(
-                    fig_gauge,
-                    use_container_width=False
-                )
+                        # -----------------------------------
+                        # AI RECOMMENDATION
+                        # -----------------------------------
 
-                    # -----------------------------------
-                    # AI RECOMMENDATION
-                    # -----------------------------------
-
-            
+                
             st.subheader("🤖 AI Investment Recommendation")
 
             if score >= 80:
-                st.success("🟢 BUY")
+                    st.success("🟢 BUY")
             elif score >= 60:
-                st.warning("🟡 HOLD")
+                    st.warning("🟡 HOLD")
             else:
-                st.error("🔴 SELL")
+                    st.error("🔴 SELL")
             st.subheader("🎯 Recommendation Confidence")
 
             confidence = score
@@ -430,7 +461,7 @@ if analyze:
             strengths = []
             weaknesses = []
 
-            # PE Ratio
+                # PE Ratio
             if pe_ratio < 20:
                 strengths.append("Low PE Ratio (Attractive Valuation)")
             else:
@@ -730,10 +761,13 @@ if analyze:
                                         st.info("Both companies appear equally strong.")
 
 
-    except Exception as e:
-     st.error(f"Error fetching data: {str(e)}")
-    st.markdown("---")
+    except Exception:
+     st.warning(
+        "⚠️ Market data is temporarily unavailable. "
+        "Please try again in a few minutes."
+    )
+st.markdown("---")
 
-    st.caption(
+st.caption(
             "Investor Decision Support System | Developed by Aditi Prakash | Powered by Yahoo Finance"
         )
