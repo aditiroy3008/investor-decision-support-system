@@ -7,7 +7,7 @@ def get_stock_data(ticker):
     stock = yf.Ticker(ticker)
 
     return {
-        "info": stock.fast_info,
+        "info": stock.info,
         "history": stock.history(
             period="1y",
             auto_adjust=True
@@ -126,6 +126,7 @@ if analyze:
         data2 = get_stock_data(ticker2)
 
         info = data1["info"]
+        
 
         info1 = data1["info"]
         info2 = data2["info"]
@@ -133,8 +134,6 @@ if analyze:
         hist = data1["history"]
         hist1 = data1["history"]
         hist2 = data2["history"]
-        st.write("Loading data...")
-        st.write(info1)
         tab1, tab2, tab3, tab4 = st.tabs([
     "📊 Overview",
     "📈 Technical Analysis",
@@ -222,29 +221,20 @@ if analyze:
                     st.write(
                         f"Current price is {price_position:.1f}% of the 52-week range"
                     )
-                    st.progress(price_position / 100)
-
-                    st.write(
-                          f"Current price is {price_position:.1f}% of the 52-week range"
-                                )
-               
-
-                summary = info.get(
+                    summary = info.get(
                     "longBusinessSummary",
                     "No company information available."
                 )
 
-                st.write(summary[:500] + "...")
+                    st.write(summary[:500] + "...")
 
-                with st.expander("Read Full Company Overview"):
-                    st.write(summary)
+                    with st.expander("Read Full Company Overview"):
+                        st.write(summary)
                         # -----------------------------------
                 # STOCK DATA
                 # -----------------------------------
-                hist = data1["history"](
-                period="1y",
-                auto_adjust=True
-                                  )
+                hist = data1["history"]
+                                  
 
                 # Create 30 DMA column
                 hist["30DMA"] = hist["Close"].rolling(window=30).mean()
@@ -585,7 +575,6 @@ if analyze:
                             c1, c2 = st.columns(2)
 
                             with c1:
-                                            st.write(f"### {info1.get('longName', ticker1)}")
                                             st.metric(
                                                 "Current Price",
                                                 f"₹{info1.get('currentPrice', 'N/A')}"
@@ -600,7 +589,7 @@ if analyze:
                                             )
 
                             with c2:
-                                            st.write(f"### {info2.get('longName', ticker2)}")
+                                            
                                             st.metric(
                                                 "Current Price",
                                                 f"₹{info2.get('currentPrice', 'N/A')}"
@@ -613,33 +602,6 @@ if analyze:
                                                 "Dividend Yield",
                                                 info2.get('dividendYield', 'N/A')
                                             )
-                            compare_df = pd.DataFrame({
-                                "Metric": [
-                                    "Current Price",
-                                    "PE Ratio",
-                                    "Dividend Yield",
-                                    "Market Cap (Cr)"
-                                ],
-                                company1: [
-                                    round(info1.get("currentPrice", 0), 2),
-                                    round(info1.get("trailingPE", 0), 2),
-                                    round(info1.get("dividendYield", 0), 2),
-                                    round(info1.get("marketCap", 0) / 10000000, 0)
-                                ],
-                                company2: [
-                                    round(info2.get("currentPrice", 0), 2),
-                                    round(info2.get("trailingPE", 0), 2),
-                                    round(info2.get("dividendYield", 0), 2),
-                                    round(info2.get("marketCap", 0) / 10000000, 0)
-                                ],
-                                "Winner": [
-                                    company1 if info1.get("currentPrice",0) > info2.get("currentPrice",0) else company2,
-                                    company1 if info1.get("trailingPE",999) < info2.get("trailingPE",999) else company2,
-                                    company1 if info1.get("dividendYield",0) > info2.get("dividendYield",0) else company2,
-                                    company1 if info1.get("marketCap",0) > info2.get("marketCap",0) else company2
-                                ]
-                            })
-
                             return1 = round(
                                 ((hist1["Close"].iloc[-1] / hist1["Close"].iloc[0]) - 1) * 100,
                                 2
