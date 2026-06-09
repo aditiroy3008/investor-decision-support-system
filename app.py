@@ -8,10 +8,25 @@ import plotly.graph_objects as go
 # -----------------------------------
 
 st.set_page_config(
-    page_title="An Investor Decision Support System for ITC Ltd",
+    page_title="ITC Investment Analytics Dashboard",
     page_icon="📈",
     layout="wide"
 )
+col1 , col2 = st.columns([1,5])
+
+with col1:
+    st.image("itc_logo.png", width=80)
+
+with col2:
+    st.markdown("""
+    <h1 style='color:#0B2E75;font-size:52px;font-weight:800;'>
+    ITC Investment Analytics Dashboard
+    </h1>
+    <h2 style='color:#0B2E75;font-size:15px;font-weight:400;margin-top:-10px;'>
+    "Explore ITC's stock performance, financial health,technical indicators and investment outlook."
+     </h2>
+    """, unsafe_allow_html=True)
+    
 
 # -----------------------------------
 # DATA FUNCTION
@@ -36,6 +51,7 @@ def get_stock_data():
 
 try:
 
+   with st.spinner("Loading ITC market data..."):
     data = get_stock_data()
 
     info = data["info"]
@@ -80,13 +96,20 @@ dividend_yield = info.get(
 # -----------------------------------
 # CSS
 # -----------------------------------
-
 st.markdown("""
 <style>
 
 .big-title {
     font-size: 48px;
     font-weight: 800;
+    color: #0B2E75;
+}
+
+.main {
+    padding-top: 1rem;
+}
+
+h1, h2, h3 {
     color: #0B2E75;
 }
 
@@ -101,129 +124,71 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+
 # -----------------------------------
 # HEADER
 # -----------------------------------
-
-st.markdown("""
-<div class="big-title">
-📈 ITC Investor Insights Platform
-</div>
-""", unsafe_allow_html=True)
-
-st.caption(
-    "Comprehensive ITC stock analysis using live Yahoo Finance data"
-)
-
 # -----------------------------------
 # SIDEBAR
 # -----------------------------------
+st.sidebar.markdown("<br>", unsafe_allow_html=True)
 
-st.sidebar.markdown("""
-<h2 style='text-align:center;color:#0B2E75;'>
-📈 ITC Analysis
-</h2>
-""", unsafe_allow_html=True)
+col1, col2 = st.sidebar.columns([1,2])
 
-st.sidebar.markdown("---")
+with col1:
+    st.image("itc_logo.png", width=70)
 
-page = st.sidebar.radio(
-    "Navigation",
+with col2:
+    st.markdown("""
+    <h3 style='margin-top:15px;color:#0B2E75;'>
+    ITC Limited
+    </h3>
+    """, unsafe_allow_html=True)
+page = st.sidebar.selectbox(
+    "📊 Analysis Modules",
     [
-        "🏠 Home",
+        "🏠 Welcome",
         "🏢 Company Analysis",
         "📈 Technical Analysis",
         "💰 Financial Analysis",
-        "🤖 Recommendation",
+        "🎯 Recommendation",
         "⚔️ Peer Comparison"
     ]
 )
+st.sidebar.markdown("---")
+
+st.sidebar.success("""
+📊 Live Market Data
+
+Source: Yahoo Finance
+""")
+
 
 # -----------------------------------
 # HOME PAGE
-# -----------------------------------
-
-if page == "🏠 Home":
-
-    st.markdown("""
-    <div style="
-    background:linear-gradient(135deg,#0B2E75,#1565C0);
-    padding:35px;
-    border-radius:20px;
-    color:white;
-    ">
-    <h1>ITC Limited Investment Dashboard</h1>
-
-    <p>
-    Comprehensive analysis of ITC Ltd covering
-    fundamentals, valuation, technical indicators,
-    financial strength and investment outlook.
-    </p>
-
-    </div>
-    """, unsafe_allow_html=True)
-    st.markdown("---")
-    col1, col2, col3, col4 = st.columns(4)
-
-    with col1:
-        st.metric(
-            "Current Price",
-            f"₹{current_price:.2f}"
-        )
-
-    with col2:
-        st.metric(
-            "Market Cap",
-            f"₹{market_cap_cr:,.0f} Cr"
-        )
-
-    with col3:
-        st.metric(
-            "PE Ratio",
-            round(pe_ratio, 2)
-        )
-
-    with col4:
-        st.metric(
-            "Dividend Yield",
-            f"{dividend_yield:.2f}%"
-        )
+# -----------------------------------    
+if page == "🏠 Welcome":
     st.markdown("---")
 
-    st.subheader("📈 ITC Stock Performance (1 Year)")
+    st.info(
+        """
+📊 Welcome to the ITC Investment Analytics Dashboard.
 
-    fig = go.Figure()
+This platform provides:
 
-    fig.add_trace(
-        go.Scatter(
-            x=hist.index,
-            y=hist["Close"],
-            mode="lines",
-            name="ITC"
-        )
+• Company Analysis
+
+• Technical Analysis
+
+• Financial Analysis
+
+• Investment Recommendation
+
+• Peer Comparison
+
+Use the Analysis Modules menu on the left to begin exploring the dashboard.
+"""
     )
-
-    fig.update_layout(
-        template="plotly_white",
-        height=450,
-        xaxis_title="Date",
-        yaxis_title="Price (₹)"
-    )
-
-    st.plotly_chart(
-        fig,
-        use_container_width=True
-    )
-    st.markdown("---")
-    st.subheader("🏢 About ITC Limited")
-
-    summary = info.get(
-        "longBusinessSummary",
-        "Information unavailable."
-    )
-
-    st.write(summary[:1000])
-
 # -----------------------------------
 # COMPANY ANALYSIS
 # -----------------------------------
@@ -607,104 +572,123 @@ elif page == "💰 Financial Analysis":
 # RECOMMENDATION
 # -----------------------------------
 
-elif page == "🤖 Recommendation":
+elif page == "🎯 Recommendation":
+    st.header("🎯 Investment Recommendation")
 
-    st.header(
-        "🤖 Investment Recommendation"
-    )
+    col1, col2, col3 = st.columns(3)
 
+    with col1:
+            st.metric("Current Price", f"₹{current_price:.2f}")
+
+    with col2:
+                        st.metric("PE Ratio", f"{pe_ratio:.2f}")
+
+    with col3:
+                        st.metric("Dividend Yield", f"{dividend_yield:.2f}%")
+    st.markdown("---")
+    st.success("""                            
+     ## BUY
+    ITC demonstrates:
+
+    ✅ Strong dividend yield
+
+    ✅ Reasonable valuation
+
+    ✅ Stable market position
+
+    ✅ Consistent profitability
+
+    Overall outlook remains positive for long-term investors.
+    
+""")
     score = 0
 
     if pe_ratio:
 
-        if pe_ratio < 20:
-            score += 20
+            if pe_ratio < 20:
+                score += 20
 
-        elif pe_ratio < 30:
-            score += 15
+            elif pe_ratio < 30:
+                score += 15
 
-        else:
-            score += 5
+            else:
+                score += 5
 
     if dividend_yield:
 
-        dy = dividend_yield * 100
+            dy = dividend_yield * 100
 
-        if dy > 4:
-            score += 20
+            if dy > 4:
+                score += 20
 
-        elif dy > 2:
-            score += 15
+            elif dy > 2:
+                score += 15
 
-        else:
-            score += 5
+            else:
+                score += 5
 
-    hist["30DMA"] = (
-        hist["Close"]
-        .rolling(30)
-        .mean()
-    )
+            hist["30DMA"] = (
+            hist["Close"]
+            .rolling(30)
+            .mean()
+        )
 
     latest_price = hist["Close"].iloc[-1]
     latest_dma = hist["30DMA"].iloc[-1]
 
     if latest_price > latest_dma:
-        score += 20
+            score += 20
 
     else:
-        score += 10
+            score += 10
 
     if market_cap_cr > 100000:
-        score += 20
+            score += 20
 
     else:
-        score += 10
+            score += 10
 
     one_year_return = round(
-        (
             (
-                hist["Close"].iloc[-1]
-                /
-                hist["Close"].iloc[0]
-            ) - 1
-        ) * 100,
-        2
-    )
+                (
+                    hist["Close"].iloc[-1]
+                    /
+                    hist["Close"].iloc[0]
+                ) - 1
+            ) * 100,
+            2
+        )
 
     if one_year_return > 20:
-        score += 20
+            score += 20
 
     elif one_year_return > 0:
-        score += 10
+            score += 10
 
     score = min(score, 100)
 
     if score >= 80:
 
-        st.success("🟢 BUY")
+            st.success("🟢 BUY")
 
     elif score >= 60:
 
-        st.warning("🟡 HOLD")
+            st.warning("🟡 HOLD")
 
     else:
 
-        st.error("🔴 SELL")
+            st.error("🔴 SELL")
 
     st.progress(score / 100)
 
     st.metric(
-        "Confidence",
-        f"{score}%"
-    )
-
-# -----------------------------------
-# PEER COMPARISON
-# -----------------------------------
+            "Confidence",
+            f"{score}%"
+        )
 
 elif page == "⚔️ Peer Comparison":
 
-    st.header("⚔️ ITC Peer Comparison")
+    st.header("⚔️ Peer Comparison")
 
     peers = {
         "HUL": "HINDUNILVR.NS",
@@ -718,65 +702,196 @@ elif page == "⚔️ Peer Comparison":
         list(peers.keys())
     )
 
-    peer_stock = yf.Ticker(
-        peers[peer]
+    peer_stock = yf.Ticker(peers[peer])
+    peer_info = peer_stock.info
+
+    peer_price = peer_info.get(
+        "currentPrice",
+        peer_info.get("regularMarketPrice", 0)
     )
 
-    peer_info = peer_stock.info
+    peer_pe = peer_info.get(
+        "trailingPE",
+        0
+    )
+
+    peer_dividend = peer_info.get(
+        "dividendYield",
+        0
+    )
+
+    peer_market_cap = (
+        peer_info.get(
+            "marketCap",
+            0
+        ) / 10000000
+    )
+
+    st.subheader("📊 Quick Comparison")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        st.markdown("### 🏢 ITC")
+
+        st.metric(
+            "Current Price",
+            f"₹{current_price:.2f}"
+        )
+
+        st.metric(
+            "PE Ratio",
+            f"{pe_ratio:.2f}"
+        )
+
+        st.metric(
+            "Dividend Yield",
+            f"{dividend_yield:.2%}"
+        )
+
+        st.metric(
+            "Market Cap",
+            f"₹{market_cap_cr:,.0f} Cr"
+        )
+
+    with col2:
+
+        st.markdown(f"### 🏢 {peer}")
+
+        st.metric(
+            "Current Price",
+            f"₹{peer_price:.2f}"
+        )
+
+        st.metric(
+            "PE Ratio",
+            f"{peer_pe:.2f}"
+        )
+
+        st.metric(
+            "Dividend Yield",
+            f"{peer_dividend:.2%}"
+        )
+
+        st.metric(
+            "Market Cap",
+            f"₹{peer_market_cap:,.0f} Cr"
+        )
+
+    st.markdown("---")
+
+    st.subheader("📋 Fundamental Comparison")
 
     compare_df = pd.DataFrame({
 
         "Metric": [
             "Current Price",
             "PE Ratio",
+            "Dividend Yield (%)",
             "Market Cap (Cr)"
         ],
 
         "ITC": [
-
             round(current_price, 2),
-
             round(pe_ratio, 2),
-
-            round(
-                market_cap_cr,
-                0
-            )
+            round(dividend_yield * 100, 2),
+            round(market_cap_cr, 0)
         ],
 
         peer: [
-
-            round(
-                peer_info.get(
-                    "currentPrice",
-                    0
-                ),
-                2
-            ),
-
-            round(
-                peer_info.get(
-                    "trailingPE",
-                    0
-                ),
-                2
-            ),
-
-            round(
-                peer_info.get(
-                    "marketCap",
-                    0
-                ) / 10000000,
-                0
-            )
+            round(peer_price, 2),
+            round(peer_pe, 2),
+            round(peer_dividend * 100, 2),
+            round(peer_market_cap, 0)
         ]
     })
 
     st.dataframe(
         compare_df,
+        use_container_width=True,
+        hide_index=True
+    )
+
+    st.markdown("---")
+
+    st.subheader("📊 Visual Comparison")
+
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Bar(
+            name="ITC",
+            x=["PE Ratio", "Dividend Yield"],
+            y=[
+                pe_ratio,
+                dividend_yield * 100
+            ]
+        )
+    )
+
+    fig.add_trace(
+        go.Bar(
+            name=peer,
+            x=["PE Ratio", "Dividend Yield"],
+            y=[
+                peer_pe,
+                peer_dividend * 100
+            ]
+        )
+    )
+
+    fig.update_layout(
+        title=f"ITC vs {peer}",
+        barmode="group",
+        template="plotly_white",
+        height=500
+    )
+
+    st.plotly_chart(
+        fig,
         use_container_width=True
     )
 
+    st.markdown("---")
+
+    st.subheader("🏆 Comparison Verdict")
+
+    score_itc = 0
+    score_peer = 0
+
+    if pe_ratio < peer_pe:
+        score_itc += 1
+    else:
+        score_peer += 1
+
+    if dividend_yield > peer_dividend:
+        score_itc += 1
+    else:
+        score_peer += 1
+
+    if market_cap_cr > peer_market_cap:
+        score_itc += 1
+    else:
+        score_peer += 1
+
+    if score_itc > score_peer:
+
+        st.success(
+            f"🏆 ITC appears stronger than {peer} based on key fundamentals."
+        )
+
+    elif score_peer > score_itc:
+
+        st.warning(
+            f"🏆 {peer} appears stronger than ITC based on key fundamentals."
+        )
+
+    else:
+
+        st.info(
+            "Both companies appear equally strong."
+        )
 # -----------------------------------
 # FOOTER
 # -----------------------------------
