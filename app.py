@@ -219,9 +219,9 @@ elif page == "🏢 Company Analysis":
 
     with col4:
         st.metric(
-            "Dividend Yield",
-            f"{dividend_yield*100:.2f}%"
-        )
+        "Dividend Yield",
+        f"{dividend_yield:.2f}%"
+                )
 
     st.markdown("---")
 
@@ -508,7 +508,7 @@ elif page == "💰 Financial Analysis":
 
     if dividend_yield:
 
-        dy = dividend_yield * 100
+        dy = dividend_yield 
 
         if dy > 4:
             score += 20
@@ -584,7 +584,10 @@ elif page == "🎯 Recommendation":
                         st.metric("PE Ratio", f"{pe_ratio:.2f}")
 
     with col3:
-                        st.metric("Dividend Yield", f"{dividend_yield:.2f}%")
+                        st.metric(
+            "Dividend Yield",
+            f"{dividend_yield:.2f}%"
+                )
     st.markdown("---")
     st.success("""                            
      ## BUY
@@ -616,7 +619,7 @@ elif page == "🎯 Recommendation":
 
     if dividend_yield:
 
-            dy = dividend_yield * 100
+            dy = dividend_yield 
 
             if dy > 4:
                 score += 20
@@ -747,7 +750,7 @@ elif page == "⚔️ Peer Comparison":
 
         st.metric(
             "Dividend Yield",
-            f"{dividend_yield:.2%}"
+            f"{dividend_yield:.2f}%"
         )
 
         st.metric(
@@ -771,7 +774,7 @@ elif page == "⚔️ Peer Comparison":
 
         st.metric(
             "Dividend Yield",
-            f"{peer_dividend:.2%}"
+            f"{f"{peer_dividend:.2f}%"}%"
         )
 
         st.metric(
@@ -795,14 +798,14 @@ elif page == "⚔️ Peer Comparison":
         "ITC": [
             round(current_price, 2),
             round(pe_ratio, 2),
-            round(dividend_yield * 100, 2),
+            round(dividend_yield , 2),
             round(market_cap_cr, 0)
         ],
 
         peer: [
             round(peer_price, 2),
             round(peer_pe, 2),
-            round(peer_dividend * 100, 2),
+           round(peer_dividend , 2),
             round(peer_market_cap, 0)
         ]
     })
@@ -824,9 +827,9 @@ elif page == "⚔️ Peer Comparison":
             name="ITC",
             x=["PE Ratio", "Dividend Yield"],
             y=[
-                pe_ratio,
-                dividend_yield * 100
-            ]
+                    pe_ratio,
+                    dividend_yield 
+]
         )
     )
 
@@ -836,7 +839,7 @@ elif page == "⚔️ Peer Comparison":
             x=["PE Ratio", "Dividend Yield"],
             y=[
                 peer_pe,
-                peer_dividend * 100
+                peer_dividend 
             ]
         )
     )
