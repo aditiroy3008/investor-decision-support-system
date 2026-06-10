@@ -2,6 +2,8 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 import plotly.graph_objects as go
+st.set_option("client.showErrorDetails", False)
+
 
 # -----------------------------------
 # PAGE CONFIG
@@ -32,7 +34,7 @@ with col2:
 # DATA FUNCTION
 # -----------------------------------
 
-@st.cache_data(ttl=300)
+@st.cache_data(ttl=1800, show_spinner=False)
 def get_stock_data():
 
     stock = yf.Ticker("ITC.NS")
@@ -47,30 +49,18 @@ def get_stock_data():
 
 # -----------------------------------
 # LOAD DATA
-# -----------------------------------
-
+# ----------------------------------
 try:
 
-   with st.spinner("Loading ITC market data..."):
-    data = get_stock_data()
+    with st.spinner("Loading ITC market data..."):
+        data = get_stock_data()
 
     info = data["info"]
     hist = data["history"]
-
-except Exception as e:
+except    Exception as e:
 
     st.error(f"Unable to load market data: {e}")
     st.stop()
-
-# -----------------------------------
-# VARIABLES
-# -----------------------------------
-
-company_name = info.get(
-    "longName",
-    "ITC Ltd"
-)
-
 current_price = info.get(
     "currentPrice",
     info.get("regularMarketPrice", 0)
@@ -194,6 +184,7 @@ Use the Analysis Modules menu on the left to begin exploring the dashboard.
 # -----------------------------------
 
 elif page == "🏢 Company Analysis":
+    company_name = "ITC Limited"
 
     st.header(company_name)
 
@@ -540,28 +531,13 @@ elif page == "💰 Financial Analysis":
     else:
         score += 10
 
-    one_year_return = round(
-        (
-            (
-                hist["Close"].iloc[-1]
-                /
-                hist["Close"].iloc[0]
-            ) - 1
-        ) * 100,
-        2
-    )
+    
 
-    if one_year_return > 20:
-        score += 20
-
-    elif one_year_return > 0:
-        score += 10
-
-    score = min(score, 100)
+    score = min(score, 80)
 
     st.metric(
         "Financial Health Score",
-        f"{score}/100"
+        f"{score}/80"
     )
     st.subheader("📌 Financial Interpretation")
 
@@ -573,121 +549,153 @@ elif page == "💰 Financial Analysis":
 # -----------------------------------
 
 elif page == "🎯 Recommendation":
+
     st.header("🎯 Investment Recommendation")
 
+    # Top Metrics
     col1, col2, col3 = st.columns(3)
 
     with col1:
-            st.metric("Current Price", f"₹{current_price:.2f}")
+        st.metric(
+            "Current Price",
+            f"₹{current_price:.2f}"
+        )
 
     with col2:
-                        st.metric("PE Ratio", f"{pe_ratio:.2f}")
+        st.metric(
+            "PE Ratio",
+            f"{pe_ratio:.2f}"
+        )
 
     with col3:
-                        st.metric(
+        st.metric(
             "Dividend Yield",
             f"{dividend_yield:.2f}%"
-                )
-    st.markdown("---")
-    st.success("""                            
-     ## BUY
-    ITC demonstrates:
+        )
 
-    ✅ Strong dividend yield
+    st.divider()
 
-    ✅ Reasonable valuation
-
-    ✅ Stable market position
-
-    ✅ Consistent profitability
-
-    Overall outlook remains positive for long-term investors.
-    
-""")
+    # Recommendation Score
     score = 0
 
+    # PE Ratio Score
     if pe_ratio:
 
-            if pe_ratio < 20:
-                score += 20
+        if pe_ratio < 20:
+            score += 20
 
-            elif pe_ratio < 30:
-                score += 15
+        elif pe_ratio < 30:
+            score += 15
 
-            else:
-                score += 5
+        else:
+            score += 5
 
+    # Dividend Yield Score
     if dividend_yield:
 
-            dy = dividend_yield 
+        dy = dividend_yield
 
-            if dy > 4:
-                score += 20
+        if dy > 4:
+            score += 20
 
-            elif dy > 2:
-                score += 15
+        elif dy > 2:
+            score += 15
 
-            else:
-                score += 5
+        else:
+            score += 5
 
-            hist["30DMA"] = (
-            hist["Close"]
-            .rolling(30)
-            .mean()
-        )
+    # Technical Trend Score
+    hist["30DMA"] = (
+        hist["Close"]
+        .rolling(30)
+        .mean()
+    )
 
     latest_price = hist["Close"].iloc[-1]
     latest_dma = hist["30DMA"].iloc[-1]
 
     if latest_price > latest_dma:
-            score += 20
-
+        score += 20
     else:
-            score += 10
+        score += 10
 
+    # Market Cap Score
     if market_cap_cr > 100000:
-            score += 20
+        score += 20
+    else:
+        score += 10
+    score = min(score, 80)
+
+    # Final Recommendation
+    if score >= 60:
+
+        st.success(f"""
+### 🟢 BUY
+
+**Confidence Score:** {score}%
+
+ITC demonstrates:
+
+✅ Strong dividend yield
+
+✅ Reasonable valuation
+
+✅ Stable market position
+
+✅ Consistent profitability
+
+✅ Positive long-term outlook
+
+**Suitable for long-term investors.**
+""")
+
+    elif score >= 40:
+
+        st.warning(f"""
+### 🟡 HOLD
+
+**Confidence Score:** {score}%
+
+ITC remains fundamentally strong but appears fairly valued.
+
+✅ Stable business
+
+✅ Consistent dividends
+
+⚠ Limited short-term upside
+
+**Existing investors may continue holding.**
+""")
 
     else:
-            score += 10
 
-    one_year_return = round(
-            (
-                (
-                    hist["Close"].iloc[-1]
-                    /
-                    hist["Close"].iloc[0]
-                ) - 1
-            ) * 100,
-            2
-        )
+        st.error(f"""
+### 🔴 SELL
 
-    if one_year_return > 20:
-            score += 20
+**Confidence Score:** {score}%
 
-    elif one_year_return > 0:
-            score += 10
+Current indicators suggest caution.
 
-    score = min(score, 100)
+⚠ Weak valuation signals
 
-    if score >= 80:
+⚠ Limited growth momentum
 
-            st.success("🟢 BUY")
+**Consider reviewing the investment thesis.**
+""")
 
-    elif score >= 60:
+    st.divider()
 
-            st.warning("🟡 HOLD")
+    st.subheader("📊 Score Breakdown")
 
-    else:
+    breakdown = {
+    "PE Ratio": 20 if pe_ratio < 20 else 15 if pe_ratio < 30 else 5,
+    "Dividend Yield": 20 if dividend_yield > 4 else 15 if dividend_yield > 2 else 5,
+    "Market Cap": 20 if market_cap_cr > 100000 else 10,
+    "Technical Trend": 20 if latest_price > latest_dma else 10
+}
 
-            st.error("🔴 SELL")
+    st.bar_chart(breakdown)
 
-    st.progress(score / 100)
-
-    st.metric(
-            "Confidence",
-            f"{score}%"
-        )
 
 elif page == "⚔️ Peer Comparison":
 
@@ -774,7 +782,7 @@ elif page == "⚔️ Peer Comparison":
 
         st.metric(
             "Dividend Yield",
-            f"{f"{peer_dividend:.2f}%"}%"
+            f"{peer_dividend:.2f}%"
         )
 
         st.metric(
@@ -855,46 +863,6 @@ elif page == "⚔️ Peer Comparison":
         fig,
         use_container_width=True
     )
-
-    st.markdown("---")
-
-    st.subheader("🏆 Comparison Verdict")
-
-    score_itc = 0
-    score_peer = 0
-
-    if pe_ratio < peer_pe:
-        score_itc += 1
-    else:
-        score_peer += 1
-
-    if dividend_yield > peer_dividend:
-        score_itc += 1
-    else:
-        score_peer += 1
-
-    if market_cap_cr > peer_market_cap:
-        score_itc += 1
-    else:
-        score_peer += 1
-
-    if score_itc > score_peer:
-
-        st.success(
-            f"🏆 ITC appears stronger than {peer} based on key fundamentals."
-        )
-
-    elif score_peer > score_itc:
-
-        st.warning(
-            f"🏆 {peer} appears stronger than ITC based on key fundamentals."
-        )
-
-    else:
-
-        st.info(
-            "Both companies appear equally strong."
-        )
 # -----------------------------------
 # FOOTER
 # -----------------------------------
